@@ -2,7 +2,7 @@
 Практичесике работы C/Embedded Basecamp
 
 Видео запись каждой работы лежит тут: https://drive.google.com/drive/folders/1llZC-niPLxcOuFIGs1ZiqFe3qsUd2mqi?usp=sharing
-
+"видео погрызли шакалы"
 Запись с анализатора для каждой работы лежит в папке с работой.
 
 Работа 1: Переключение 4 светодиодов при помощи прерываний и capture compare. 
