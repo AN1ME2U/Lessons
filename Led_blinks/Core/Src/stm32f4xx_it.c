@@ -202,8 +202,8 @@ void SysTick_Handler(void)
 /**
   * @brief This function handles TIM3 global interrupt.
   */
-void TIM3_IRQHandler(void)
-{
+void TIM3_IRQHandler(void)																//Мигание реализовано через прерывание. При каждом прерывании таймера проверяется флаг события
+{																						//capture compare. При обнаружении флага соответствующий светодиоду пин переключает свое состояние
   /* USER CODE BEGIN TIM3_IRQn 0 */
 	if(TIM3->SR & TIM_SR_CC1IF){
 		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
