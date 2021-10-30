@@ -42,7 +42,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+extern uint32_t delay;
+extern uint8_t mode;
+uint8_t pass = 0;
+uint8_t mode_hide = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,9 +61,7 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
-extern int32_t delay;
-extern int8_t mode;
-extern uint8_t pass;
+
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -208,16 +209,15 @@ void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
 	if(EXTI->PR & EXTI_PR_PR6){
-		delay += 50;
+		delay += 50;																							//Delay increase
 	}
 	if(EXTI->PR & EXTI_PR_PR8){
-		delay -= 50;
-		delay = (delay < 0)?0:delay;																//Чтоб задержка не ушла в минус
+		delay = (delay == 0)?0:delay-50;																		//Delay decrease
 
 	}
-	if(EXTI->PR & EXTI_PR_PR9){																		//Выбор предыдущего режима
-		mode--;
-		mode = (mode < 0)?0:mode;
+	if(EXTI->PR & EXTI_PR_PR9){
+		mode_hide == 1?(mode_hide = 1):(mode_hide--);															//Select previous mode
+		pass == 1?(mode = mode_hide) : (mode = 0);																//Change mode if pass = 1
 	}
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
@@ -234,12 +234,13 @@ void EXTI9_5_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-	if(EXTI->PR & EXTI_PR_PR11){																	//Выбор следующего режима
-		mode++;
-		mode = (mode == 4)?3:mode;
+	if(EXTI->PR & EXTI_PR_PR11){
+		mode_hide == 4?(mode_hide = 4):(mode_hide++);															//Select next mode
+		pass == 1?(mode = mode_hide) : (mode = 0);																//Change mode if pass = 1
 	}
 	if(EXTI->PR & EXTI_PR_PR15){
-		pass = (pass == 0)?1:0;
+		pass ^= 1;																								//Toggle pass
+		pass == 1?(mode = mode_hide) : (mode = 0);																//If there was a selected mode before, when pass toggles to 1, mode will be restored
 	}
   /* USER CODE END EXTI15_10_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_11);
