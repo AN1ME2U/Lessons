@@ -27,7 +27,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-
+extern TIM_HandleTypeDef htim4;
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -42,10 +42,12 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-uint8_t mode = 4;										//Текущий режим работы
-uint32_t steps = 1;										//Кол-во шагов по 5КГц.
-uint16_t duty = 0;										//Показатель заполненности шима. Таймер считает до 100 и сбрасывается, соответственно меняя значение регистра capture compare можно добиться изменения заполнения по процентам
-uint16_t presc = 0;										//Значение, загружаемое в регистр prescale таймера 4
+uint8_t mode = 4;
+uint8_t steps_num = 1;
+uint8_t duty = 0;
+const uint16_t ZERO = 0x000;																		//Reset value of the register
+const uint16_t freq = 500;																			//APB timer clock freq/100000
+const uint16_t step = 5;																			//PWM step in KHz
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -208,41 +210,33 @@ void SysTick_Handler(void)
 void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
-	if(EXTI->PR & EXTI_PR_PR6){														//Проверка, сработала ли кнопка 4
-		if(duty != 100){
-			duty += 5;																//Увеличение времени заполнения шима.
-		}
-		TIM4->CCR1 &= ~(0xFFFF);													//Сброс регистра перед записью
-		TIM4->CCR2 &= ~(0xFFFF);													//Сброс регистра перед записью
-		TIM4->CCR3 &= ~(0xFFFF);													//Сброс регистра перед записью
-		TIM4->CCR4 &= ~(0xFFFF);													//Сброс регистра перед записью
-		TIM4->CCR1 |= ((duty) << 0);												//Запись в регистр времени шима
-		TIM4->CCR2 |= ((duty) << 0);												//Запись в регистр времени шима
-		TIM4->CCR3 |= ((duty) << 0);												//Запись в регистр времени шима
-		TIM4->CCR4 |= ((duty) << 0);												//Запись в регистр времени шима
+	if(EXTI->PR & EXTI_PR_PR6){
+		(duty != 100)?(duty += 5) : (duty = 0);																	//Increase duty cycle
+		TIM4->CCR1 &= ZERO;																						//Reset CCR register
+		TIM4->CCR2 &= ZERO;
+		TIM4->CCR3 &= ZERO;
+		TIM4->CCR4 &= ZERO;
+		TIM4->CCR1 |= duty;																						//Write duty cycle value to the CCR register
+		TIM4->CCR2 |= duty;
+		TIM4->CCR3 |= duty;
+		TIM4->CCR4 |= duty;
 	}
-	if(EXTI->PR & EXTI_PR_PR8){														//Проверка, сработала ли кнопка 5
-		if(duty != 0){
-			duty -= 5;																//Уменьшение времени заполнения шима
-		}
-		TIM4->CCR1 &= ~(0xFFFF);													//Сброс регистра перед записью
-		TIM4->CCR2 &= ~(0xFFFF);													//Сброс регистра перед записью
-		TIM4->CCR3 &= ~(0xFFFF);													//Сброс регистра перед записью
-		TIM4->CCR4 &= ~(0xFFFF);													//Сброс регистра перед записью
-		TIM4->CCR1 |= ((duty) << 0);												//Запись в регистр времени шима
-		TIM4->CCR2 |= ((duty) << 0);												//Запись в регистр времени шима
-		TIM4->CCR3 |= ((duty) << 0);												//Запись в регистр времени шима
-		TIM4->CCR4 |= ((duty) << 0);												//Запись в регистр времени шима
+	if(EXTI->PR & EXTI_PR_PR8){
+		(duty != 0)?(duty -= 5) : (duty = 0);																	//Decrease duty cycle
+		TIM4->CCR1 &= ZERO;
+		TIM4->CCR2 &= ZERO;																						//Reset CCR register
+		TIM4->CCR3 &= ZERO;
+		TIM4->CCR4 &= ZERO;
+		TIM4->CCR1 |= duty;																						//Write duty cycle value to the CCR register
+		TIM4->CCR2 |= duty;
+		TIM4->CCR3 |= duty;
+		TIM4->CCR4 |= duty;
 	}
-	if(EXTI->PR & EXTI_PR_PR9){														//Проверка, сработала ли кнопка 3
-		if(steps > 1){
-			steps--;
-		} else{
-			steps = 1;
-		}
-		presc = (500000/(5000*steps));												//Считаем prescaller
-			TIM4->PSC &= ~(0xFFFF);													//Сброс регистра перед записью
-			TIM4->PSC |= presc-1;													//Запись в регистр prescale таймера 4
+	if(EXTI->PR & EXTI_PR_PR9){
+		(steps_num != 1)?(steps_num--) : (steps_num = 1);														//Decrease number of steps value. Minimum value is 1
+		uint16_t presc = (freq/(step*steps_num));																//Calculate timer prescaler value
+			TIM4->PSC &= ZERO;																					//Reset PRC register
+			TIM4->PSC |= presc-1;																				//Write prescaler value to the PRC register
 
 
 
@@ -262,35 +256,33 @@ void EXTI9_5_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-	if(EXTI->PR & EXTI_PR_PR11){													//Проверка, сработала ли кнопка 1
-		steps++;
-		presc = (500000/(5000*steps));												//Считаем prescaller
-		TIM4->PSC &= ~(0xFFFF);														//Сброс регистра перед записью
-		TIM4->PSC |= presc-1;														//Запись в регистр prescale таймера 4
+	if(EXTI->PR & EXTI_PR_PR11){
+		steps_num++;																							//Increase number of steps value
+		uint16_t presc = (freq/(step*steps_num));																//Calculate timer prescaler value
+		TIM4->PSC &= ZERO;																						//Reset PRC register
+		TIM4->PSC |= presc-1;																					//Write prescaler value to the PRC register
 
 	}
-	if(EXTI->PR & EXTI_PR_PR15){													//Проверка, сработала ли кнопка 2
-		mode++;
-		mode = (mode == 5)?0:mode;
+	if(EXTI->PR & EXTI_PR_PR15){
+		(mode == 4)?(mode = 0) : (mode++);																		//Select next mode in circle
 		switch (mode){
 			case 0:
-				TIM4->CCER &= ~(0b0001000100010001);								//Отключаем PWM на всех каналах
-				TIM4->CCER |= (1 << 12);											//Включаетм PWM на канале 4
+				HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4);														//Disable PWM on channel 4
 				break;
 			case 1:
-				TIM4->CCER &= ~(0b0001000100010001);								//Отключаем PWM на всех каналах
-				TIM4->CCER |= (1 << 8);												//Включаетм PWM на канале 3
+				HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);														//Start PWM on channel 1
 				break;
 			case 2:
-				TIM4->CCER &= ~(0b0001000100010001);								//Отключаем PWM на всех каналах
-				TIM4->CCER |= (1 << 4);												//Включаетм PWM на канале 2
+				HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_1);														//Disable PWM on channel 1
+				HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);														//Start PWM on channel 2
 				break;
 			case 3:
-				TIM4->CCER &= ~(0b0001000100010001);								//Отключаем PWM на всех каналах
-				TIM4->CCER |= (1 << 0);												//Включаетм PWM на канале 1
+				HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2);														//Disable PWM on channel 2
+				HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);														//Start PWM on channel 3
 				break;
 			case 4:
-				TIM4->CCER &= ~(0b0001000100010001);								//Отключаем PWM на всех каналах
+				HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);														//Disable PWM on channel 3
+				HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);														//Start PWM on channel 4
 				break;
 		}
 	}
