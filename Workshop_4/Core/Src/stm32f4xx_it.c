@@ -43,7 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 uint32_t ADC_RES[3] = {};																													//Array to store adc values after every measure
-uint32_t *ADRESANTS[3] = {(uint32_t *)0x40000838U, (uint32_t *)0x40000840U ,(uint32_t *)0x40000834U};										//"Address book" for CCR registers of TIM4
+uint32_t *ADRESATS[3] = {(uint32_t *)0x40000838U, (uint32_t *)0x40000840U ,(uint32_t *)0x40000834U};										//"Address book" for CCR registers of TIM4
 uint8_t extreme_conditions = 0;																												//Number of extreme conditions
 uint8_t extreme_conditions_back = 0;																										//Copy of extreme conditions value for compare
 const uint8_t SENSATIVITY_LEVEL_HIGH = 90;																									//High level of PWM duty
@@ -265,7 +265,7 @@ void leds(void){
 	for(uint8_t RANK = 0; RANK < 3; RANK++){
 		(ADC_RES[RANK] < SENSATIVITY_LEVEL_ADC)?(PWM_DUTY = 1) : (PWM_DUTY = ADC_RES[RANK]/40);									//If ADC value less then senastivity lever there if no effect
 		(PWM_DUTY > SENSATIVITY_LEVEL_HIGH)? (PWM_DUTY = 100, extreme_conditions++) : (0);										//PWM duty max after passing high sensativity level
-		*ADRESANTS[RANK] |= PWM_DUTY-1;																							//Load PWM value to CCR registers by address
+		*ADRESATS[RANK] |= PWM_DUTY-1;																							//Load PWM value to CCR registers by address
 	}
 
 	if(extreme_conditions != extreme_conditions_back){																			//If new num of extreme conditions same as past? there is no effect
