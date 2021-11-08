@@ -61,8 +61,8 @@ all: main-build
 main-build: blinks_advanced.elf secondary-outputs
 
 # Tool invocations
-blinks_advanced.elf: $(OBJS) $(USER_OBJS) E:\STM32\blinks_advanced\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "blinks_advanced.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\STM32\blinks_advanced\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="blinks_advanced.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+blinks_advanced.elf: $(OBJS) $(USER_OBJS) E:\Lessons\Lessons\blinks_advanced\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "blinks_advanced.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Lessons\Lessons\blinks_advanced\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="blinks_advanced.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

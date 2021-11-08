@@ -33,6 +33,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define TIM4_CCR1 0x40000834U
+#define TIM4_CCR2 0x40000838U
+#define TIM4_CCR4 0x40000840U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,7 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 uint32_t ADC_RES[3] = {};																													//Array to store adc values after every measure
-uint32_t *ADRESATS[3] = {(uint32_t *)0x40000838U, (uint32_t *)0x40000840U ,(uint32_t *)0x40000834U};										//"Address book" for CCR registers of TIM4
+uint32_t *ADRESATS[3] = {(uint32_t *)TIM4_CCR2, (uint32_t *)TIM4_CCR1 ,(uint32_t *)TIM4_CCR4};												//"Address book" for CCR registers of TIM4
 uint8_t extreme_conditions = 0;																												//Number of extreme conditions
 uint8_t extreme_conditions_back = 0;																										//Copy of extreme conditions value for compare
 const uint8_t SENSATIVITY_LEVEL_HIGH = 90;																									//High level of PWM duty
@@ -263,6 +266,12 @@ void leds(void){
 	TIM4->CCR4 &= RESET;
 	TIM4->CCR1 &= RESET;
 	for(uint8_t RANK = 0; RANK < 3; RANK++){
+		if(RANK == 3){																											//Case for external temperature sensor
+			(ADC_RES[RANK] < SENSATIVITY_LEVEL_ADC)?(PWM_DUTY = 1) : (PWM_DUTY = (4096-ADC_RES[RANK])/40);						//If ADC value less then senastivity lever there if no effect
+			(PWM_DUTY > SENSATIVITY_LEVEL_HIGH)? (PWM_DUTY = 100, extreme_conditions++) : (0);									//PWM duty max after passing high sensativity level
+			*ADRESATS[RANK] |= PWM_DUTY-1;																						//Load PWM value to CCR registers by address
+			break;
+		}
 		(ADC_RES[RANK] < SENSATIVITY_LEVEL_ADC)?(PWM_DUTY = 1) : (PWM_DUTY = ADC_RES[RANK]/40);									//If ADC value less then senastivity lever there if no effect
 		(PWM_DUTY > SENSATIVITY_LEVEL_HIGH)? (PWM_DUTY = 100, extreme_conditions++) : (0);										//PWM duty max after passing high sensativity level
 		*ADRESATS[RANK] |= PWM_DUTY-1;																							//Load PWM value to CCR registers by address

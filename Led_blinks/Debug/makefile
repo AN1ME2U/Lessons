@@ -61,8 +61,8 @@ all: main-build
 main-build: Led_blinks.elf secondary-outputs
 
 # Tool invocations
-Led_blinks.elf: $(OBJS) $(USER_OBJS) E:\STM32\Led_blinks\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Led_blinks.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\STM32\Led_blinks\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Led_blinks.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Led_blinks.elf: $(OBJS) $(USER_OBJS) E:\Lessons\Lessons\Led_blinks\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Led_blinks.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Lessons\Lessons\Led_blinks\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Led_blinks.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
