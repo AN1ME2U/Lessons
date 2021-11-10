@@ -276,7 +276,7 @@ void leds(void){
 
 	if(extreme_conditions != extreme_conditions_back){																			//If new num of extreme conditions same as past? there is no effect
 		TIM3->ARR = RESET;																										//Reset ARR register of TIM3
-		(extreme_conditions == 0)?(TIM3->CR1 |= TIM_CR1_UDIS) : (TIM3->CR1 &= ~TIM_CR1_UDIS);										//If at least one extreme conditon allow TIM3 update interrupt generation
+		(extreme_conditions == 0)?(TIM3->CR1 |= TIM_CR1_UDIS) : (TIM3->CR1 &= ~TIM_CR1_UDIS);									//If at least one extreme conditon allow TIM3 update interrupt generation
 		switch(extreme_conditions){
 		case 0:
 			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);																//If 0, dissable LED

@@ -94,11 +94,11 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);																	//Start TIM3 with interrupts
-  TIM3->CR1 |= TIM_CR1_UDIS;																		//Dissable update interraupt
+  TIM3->CR1 |= TIM_CR1_UDIS;																		//Dissable update interrupt
   HAL_TIM_Base_Start_IT(&htim4);																	//Start TIM3 with interrupts
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);															//Enable PWM on channel 1 of TIM4
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);															//Enable PWM on channel 1 of TIM4
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);															//Enable PWM on channel 1 of TIM4
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);															//Enable PWM on channel 2 of TIM4
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);															//Enable PWM on channel 4 of TIM4
   /* USER CODE END 2 */
 
   /* Infinite loop */
