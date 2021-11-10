@@ -218,7 +218,9 @@ void SysTick_Handler(void)
 void TIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM3_IRQn 0 */
-HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+	if(TIM3->SR & TIM_SR_UIF){
+		HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+	}
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
@@ -262,37 +264,38 @@ void DMA2_Stream0_IRQHandler(void)
 /* USER CODE BEGIN 1 */
 void leds(void){
 	uint16_t PWM_DUTY = 0;																										//Local value for pwm duty
-	TIM4->CCR2 &= RESET;																										//Reseting CCR registers
-	TIM4->CCR4 &= RESET;
-	TIM4->CCR1 &= RESET;
-	ADC_RES[3] = 4096 - ADC_RES[3];																								//Inverting external sensor value
+	//TIM4->CCR2 &= RESET;																										//Reseting CCR registers
+	//TIM4->CCR4 &= RESET;
+	//TIM4->CCR1 &= RESET;
+	ADC_RES[2] = 4096 - ADC_RES[2];																								//Inverting external sensor value
 	for(uint8_t RANK = 0; RANK < 3; RANK++){
 		(ADC_RES[RANK] < SENSATIVITY_LEVEL_ADC)?(PWM_DUTY = 1) : (PWM_DUTY = ADC_RES[RANK]/40);									//If ADC value less then senastivity lever there if no effect
 		(PWM_DUTY > SENSATIVITY_LEVEL_HIGH)? (PWM_DUTY = 100, extreme_conditions++) : (0);										//PWM duty max after passing high sensativity level
-		*ADRESATS[RANK] |= PWM_DUTY-1;																							//Load PWM value to CCR registers by address
+		*ADRESATS[RANK] = PWM_DUTY-1;																							//Load PWM value to CCR registers by address
 	}
 
 	if(extreme_conditions != extreme_conditions_back){																			//If new num of extreme conditions same as past? there is no effect
-		TIM3->ARR &= RESET;																										//Reset ARR register of TIM3
-		(extreme_conditions > 0)?(TIM3->EGR |= TIM_EGR_UG) : (TIM3->EGR &= (RESET << 0));										//If at least one extreme conditon allow TIM3 update interrupt generation
+		TIM3->ARR = RESET;																										//Reset ARR register of TIM3
+		(extreme_conditions == 0)?(TIM3->CR1 |= TIM_CR1_UDIS) : (TIM3->CR1 &= ~TIM_CR1_UDIS);										//If at least one extreme conditon allow TIM3 update interrupt generation
 		switch(extreme_conditions){
 		case 0:
 			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);																//If 0, dissable LED
 			break;
 		case 1:
-			TIM3->ARR |= ONE_HZ;																								//If 1, LED frequency sets to 1 Hz
+			TIM3->ARR = ONE_HZ;																									//If 1, LED frequency sets to 1 Hz
 			break;
 		case 2:
-			TIM3->ARR |= TWO_DOT_FIVE_HZ;																						//If 1, LED frequency sets to 2.5 Hz
+			TIM3->ARR = TWO_DOT_FIVE_HZ;																						//If 2, LED frequency sets to 2.5 Hz
 			break;
 		case 3:
-			TIM3->ARR |= FIVE_HZ;																								//If 1, LED frequency sets to 5 Hz
+			TIM3->ARR = FIVE_HZ;																								//If 3, LED frequency sets to 5 Hz
 			break;
 		default:
 			break;
 		}
+		extreme_conditions_back = extreme_conditions;																			//Copy num of extreme conditions for compare in next cycle
 	}
-	extreme_conditions_back = extreme_conditions;																				//Copy num of extreme conditions for compare in next cycle
+
 	extreme_conditions = RESET;
 }
 /* USER CODE END 1 */
