@@ -265,13 +265,8 @@ void leds(void){
 	TIM4->CCR2 &= RESET;																										//Reseting CCR registers
 	TIM4->CCR4 &= RESET;
 	TIM4->CCR1 &= RESET;
+	ADC_RES[3] = 4096 - ADC_RES[3];																								//Inverting external sensor value
 	for(uint8_t RANK = 0; RANK < 3; RANK++){
-		if(RANK == 3){																											//Case for external temperature sensor
-			(ADC_RES[RANK] < SENSATIVITY_LEVEL_ADC)?(PWM_DUTY = 1) : (PWM_DUTY = (4096-ADC_RES[RANK])/40);						//If ADC value less then senastivity lever there if no effect
-			(PWM_DUTY > SENSATIVITY_LEVEL_HIGH)? (PWM_DUTY = 100, extreme_conditions++) : (0);									//PWM duty max after passing high sensativity level
-			*ADRESATS[RANK] |= PWM_DUTY-1;																						//Load PWM value to CCR registers by address
-			break;
-		}
 		(ADC_RES[RANK] < SENSATIVITY_LEVEL_ADC)?(PWM_DUTY = 1) : (PWM_DUTY = ADC_RES[RANK]/40);									//If ADC value less then senastivity lever there if no effect
 		(PWM_DUTY > SENSATIVITY_LEVEL_HIGH)? (PWM_DUTY = 100, extreme_conditions++) : (0);										//PWM duty max after passing high sensativity level
 		*ADRESATS[RANK] |= PWM_DUTY-1;																							//Load PWM value to CCR registers by address
