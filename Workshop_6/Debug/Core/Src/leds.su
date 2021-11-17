@@ -1,0 +1,5 @@
+leds.c:14:6:DRIVER_SETUP	24	static
+leds.c:18:6:LED_WRITE	32	static
+leds.c:26:6:LED_PRESCALLER_SET	32	static
+leds.c:34:6:I2C_READER	32	static
+leds.c:39:6:SLEEP_MODE	32	static
