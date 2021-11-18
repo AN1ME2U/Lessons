@@ -8,6 +8,7 @@
 
 uint8_t DEFAULT_SETUP = 0x21;
 uint8_t TRANSMIT[4] = {0};
+uint8_t TX_RST[5] = {LED0, 0,0,0,0};
 uint8_t REG_DATA = 0;
 extern char DONE[13];
 
@@ -15,11 +16,17 @@ void DRIVER_SETUP(void){																								//Load base configuration to ext
 	HAL_I2C_Mem_Write (I2C_HANDLER, DRIVER_ADDR, MODE1, 1, (uint8_t *)&DEFAULT_SETUP, 1, 1000);
 }
 
+void LED_RST(uint8_t reg){
+	TX_RST[0] = reg;
+	HAL_I2C_Master_Transmit(&hi2c1, DRIVER_ADDR, TX_RST, 5, 1000);
+}
+
 void LED_WRITE(uint8_t led_num, uint16_t percent){																		//Writes a new value in pwm control registers of driver
 	(led_num == 16) ? (led_num = ALL_LED) : (led_num = 6+(led_num*4));
 	uint16_t duty = 4095*percent/100;
-	TRANSMIT[2] = (uint8_t)(duty >> 8);
-	TRANSMIT[3] = (uint8_t)duty;
+	TRANSMIT[3] = (uint8_t)(duty >> 8);
+	TRANSMIT[2] = (uint8_t)duty;
+	LED_RST(led_num);
 	HAL_I2C_Mem_Write_IT(I2C_HANDLER, DRIVER_ADDR, led_num, 1, (uint8_t *)TRANSMIT, 4);
 }
 
@@ -38,7 +45,7 @@ void I2C_READER(uint8_t reg_addr){																						//Reader for I2C device 
 
 void SLEEP_MODE(uint8_t state){																							//Disable and enable sleep mode
 	I2C_READER(MODE1);
-	REG_DATA &= (0 << 4);
+	REG_DATA &= ~(1 << 4);
 	REG_DATA |= (state << 4);
 	TRANSMIT[2] = REG_DATA;
 	HAL_I2C_Mem_Write(I2C_HANDLER, DRIVER_ADDR, MODE1, 1, (uint8_t *)&TRANSMIT[2], 1, 1000);

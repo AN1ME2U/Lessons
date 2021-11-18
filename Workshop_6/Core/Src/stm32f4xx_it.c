@@ -23,6 +23,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "analyzer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -233,6 +234,10 @@ void USART3_IRQHandler(void)
   		HAL_UART_Transmit(&huart3, (uint8_t *)&NEW_LINE, 1, 1000);										//Make new line
   		MESSAGE_ANALYZER();																				//Run massage analyzer
   		RX_POS = 0;																						//Reset rx buffer "pointer"
+  	}else if(RX[RX_POS] == BACKSPACE){
+  		RX[RX_POS] = 0;
+  		RX[RX_POS]--;
+  		RX[RX_POS] = 0;
   	}else{
   		RX_POS++;
   	}
