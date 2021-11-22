@@ -234,10 +234,11 @@ void USART3_IRQHandler(void)
   		HAL_UART_Transmit(&huart3, (uint8_t *)&NEW_LINE, 1, 1000);										//Make new line
   		MESSAGE_ANALYZER();																				//Run massage analyzer
   		RX_POS = 0;																						//Reset rx buffer "pointer"
+  		for(uint8_t val = 0; val < sizeof(RX); val++, RX[val] = 0);
   	}else if(RX[RX_POS] == BACKSPACE){
   		(RX_POS == 0) ? (RX[RX_POS] = 0) : (RX[RX_POS] = 0, RX[RX_POS]--, RX[RX_POS] = 0);
   	}else{
-  		(RX_POS == sizeof(RX)) ? (RX_POS = 0) : (RX_POS++);
+  		(RX_POS == sizeof(RX)-1) ? (RX_POS = 0) : (RX_POS++);
   	}
 
   HAL_UART_Receive_IT(&huart3, (uint8_t *)&RX[RX_POS],1);
