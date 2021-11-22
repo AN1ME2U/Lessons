@@ -157,7 +157,7 @@ void SPI_DISABLE_WP(void){																								//Disable flash write protecti
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_RESET);
 	HAL_SPI_Transmit(&hspi1, (uint8_t *)&FLASH_WRITE_STATUS_REGISTER, 1, 1000 );										//Sending write status register command
-	HAL_SPI_Transmit(&hspi1, 0, 1, 1000 );																				//Sending 0 to dissable all write protection
+	HAL_SPI_Transmit(&hspi1, 0, 1, 1000 );																				//Sending 0 to disable all write protection
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);
 }
 

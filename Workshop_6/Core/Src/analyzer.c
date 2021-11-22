@@ -31,9 +31,9 @@ void MESSAGE_ANALYZER(void){																			//Compare input buffer with examp
 			MATCHES = 0;
 			HID();
 		} else{
-			HAL_UART_Transmit(&huart3, (uint8_t *)UNkNOWN_COM, strlen(UNkNOWN_COM), 1000);				//If there is no matches print unknown command mesage
+			HAL_UART_Transmit(&huart3, (uint8_t *)UNkNOWN_COM, strlen(UNkNOWN_COM), 1000);				//If there is no matches print unknown command message
 		}
-	} else{																								//If there is no '/' print unknown command mesage
+	} else{																								//If there is no '/' print unknown command message
 		HAL_UART_Transmit(&huart3, (uint8_t *)UNkNOWN_COM, strlen(UNkNOWN_COM), 1000);
 	}
 }
