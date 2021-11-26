@@ -92,15 +92,18 @@ static command_error_t led_status_handler(const uint8_t * buffer, size_t len, ch
 }
 
 static command_error_t gpio_command_handler(const uint8_t * buffer, size_t len){
-
+	char gpio_port;
 	int pin_state;
 	int pin_num;
-	sscanf((const char *)buffer, "GPIOD.%d=%d", &pin_num, &pin_state);
+	sscanf((const char *)buffer, "write gpio%s %d %d", &gpio_port, &pin_num, &pin_state);
 	if(buffer == 0 || len ==0 || len > CMD_BUFFER_MAX_LEN){
 		return COMMAND_ERR_WRONG_FORMAT;
 	}
 	if(pin_num < 12 || pin_num > 15){
 		return COMMAND_ERR_GPIO_PIN;
+	}
+	if(gpio_port != 'd'){
+		return COMMAND_ERR_GPIO_NAME;
 	}
 	if(pin_state == 0 || pin_state == 1){
 		HAL_GPIO_WritePin(GPIOD, 1 << pin_num, pin_state);
@@ -222,7 +225,7 @@ void StartUdpServerTask(void const * argument)
 		}
 		else
 		{
-			UDP_SERVER_PRINTF("No data within five seconds.\n");
+			UDP_SERVER_PRINTF("No data within five seconds.\n\r");
 		}
 	}
 }
