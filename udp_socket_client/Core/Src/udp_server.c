@@ -85,7 +85,7 @@ static command_error_t gpio_read_handler(const uint8_t * buffer, size_t len, cha
 	if(buffer == NULL || len == 0 || len > CMD_BUFFER_MAX_LEN || msg == NULL){
 		return COMMAND_ERR_ARGUMENT;
 	}
-	if(sscanf((const char *)buffer, "read gpio%s %d", &gpio_port, &pin_num) != 2){
+	if(sscanf((const char *)buffer, "read gpio%c %d", &gpio_port, &pin_num) != 2){
 		return COMMAND_ERR_WRONG_FORMAT;
 	}
 	if(pin_num < 12 || pin_num > 15){
@@ -116,7 +116,7 @@ static command_error_t gpio_write_handler(const uint8_t * buffer, size_t len){
 	if(buffer == NULL || len == 0 || len > CMD_BUFFER_MAX_LEN){
 		return COMMAND_ERR_ARGUMENT;
 	}
-	if((sscanf((const char *)buffer, "write gpio%s %d %d", &gpio_port, &pin_num, &pin_state)) != 3){
+	if((sscanf((const char *)buffer, "write gpio%c %d %d", &gpio_port, &pin_num, &pin_state)) != 3){
 		return COMMAND_ERR_WRONG_FORMAT;
 	}
 	if(pin_num < 12 || pin_num > 15){
@@ -193,7 +193,7 @@ void StartUdpServerTask(void const * argument)
 			ssize_t received;
 			ssize_t received2;
 
-			if (FD_ISSET(socket2_fd, &rfds)){
+			if (FD_ISSET(socket_fd, &rfds)){
 
 				received = recvfrom(socket_fd, buffer, buf_size, MSG_DONTWAIT, (struct sockaddr *)&client_addr, (socklen_t *)&addr_len);
 
