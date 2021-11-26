@@ -222,7 +222,7 @@ void StartUdpServerTask(void const * argument)
 		}
 		else
 		{
-			UDP_SERVER_PRINTF("No data within five seconds.\n");
+			UDP_SERVER_PRINTF("No data within five seconds.\n\r");
 		}
 	}
 }
