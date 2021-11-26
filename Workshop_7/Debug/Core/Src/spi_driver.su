@@ -1,7 +1,0 @@
-spi_driver.c:110:6:HOME_SCREEN	8	static
-spi_driver.c:138:6:SPI_WREN	8	static
-spi_driver.c:153:6:SPI_DISABLE_WP	8	static
-spi_driver.c:165:6:SPI_READ	16	static
-spi_driver.c:191:6:SPI_ERASE	16	static
-spi_driver.c:215:6:SPI_WRITE	16	static
-spi_driver.c:235:6:ADDRESS_MAKER	24	static

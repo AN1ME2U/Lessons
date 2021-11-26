@@ -1,5 +1,0 @@
-analyzer.c:23:6:MESSAGE_ANALYZER	16	static
-analyzer.c:41:6:HID	8	static
-analyzer.c:56:6:MODE_1	8	static
-analyzer.c:72:6:MODE_2	8	static
-analyzer.c:90:6:MODE_3	8	static
