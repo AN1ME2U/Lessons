@@ -70,35 +70,42 @@ typedef enum {
 }command_error_t;
 
 /* Read pin status API description
- *
- * const uint8_t * buffer - pointer to data buffer
+ * It takes address of buffer with input command, it's size and address of message buffer that should to be returned
+ * Works only with GPIOD port and pins 12 - 15. Attempts to read any else pin or port gets error code
+ * If some problems occurred, returns error code
+ * If there is no problems, return COMMAND_OK code and write message via pointer
+ * const uint8_t * buffer - constant pointer to data buffer
  * size_t len - size of buffer
- * bool *state - state of pin that should be renurned
- * uint8_t *pin - a pointer to the PIN number that should to be returned
+ * char* msg - pointer to message that should be returned
  */
-static command_error_t led_status_handler(const uint8_t * buffer, size_t len, bool *state, uint8_t *pin)
+static command_error_t gpio_status_handler(const uint8_t * buffer, size_t len, char* msg)
 {
 	int pin_num;
 	char gpio_port;
+	if(buffer == NULL || len == 0 || len > CMD_BUFFER_MAX_LEN || msg == NULL){
+		return COMMAND_ERR_ARGUMENT;
+	}
 	if(sscanf((const char *)buffer, "read gpio%s %d", &gpio_port, &pin_num) != 2){
 		return COMMAND_ERR_WRONG_FORMAT;
-	}
-	if(buffer == 0 || len ==0 || len > CMD_BUFFER_MAX_LEN){
-		return COMMAND_UNKNOWN_ERROR;
 	}
 	if(pin_num < 12 || pin_num > 15){
 		return COMMAND_ERR_GPIO_PIN;
 	}
 	if(gpio_port != 'd'){
 		return COMMAND_ERR_GPIO_NAME;
-	}else {
+	} else {
 		uint8_t pin_status = HAL_GPIO_ReadPin (GPIOD, 1 << pin_num);
+		sprintf(msg, "Status of GPIOD pin %d = %d\n", pin_num, pin_status);
 	}
 	return COMMAND_OK;
 }
 
 /* Led write pin API description
- *
+ * It takes buffer with command and it's length
+ * Read command and try to find GPIO port, pin number and pin status that should to be set
+ * Works only with GPIOD port and pins 12 - 15. Attempts to write any else pin or port gets error code
+ * If there is any problems, return error code
+ * If there is no problems write new state to pin and return COMMAND_OK code
  * const uint8_t * buffer - constant pointer to data buffer
  * size_t len - size of buffer
  */
@@ -106,8 +113,10 @@ static command_error_t gpio_command_handler(const uint8_t * buffer, size_t len){
 	char gpio_port;
 	int pin_state;
 	int pin_num;
-	sscanf((const char *)buffer, "write gpio%s %d %d", &gpio_port, &pin_num, &pin_state);
-	if(buffer == 0 || len ==0 || len > CMD_BUFFER_MAX_LEN){
+	if(buffer == NULL || len == 0 || len > CMD_BUFFER_MAX_LEN){
+		return COMMAND_ERR_ARGUMENT;
+	}
+	if((sscanf((const char *)buffer, "write gpio%s %d %d", &gpio_port, &pin_num, &pin_state)) != 3){
 		return COMMAND_ERR_WRONG_FORMAT;
 	}
 	if(pin_num < 12 || pin_num > 15){
@@ -190,7 +199,7 @@ void StartUdpServerTask(void const * argument)
 
 				if (received2 > 0){
 
-					if ( (r = led_status_handler(buffer2, received2, gpio_status_feedback)) != COMMAND_OK){
+					if ( (r = gpio_status_handler(buffer2, received2, gpio_status_feedback)) != COMMAND_OK){
 
 						UDP_SERVER_PRINTF("led_status_handler() returned error code = %d\n\r", (int)r);
 						sprintf(err_msg, "error code %d\n", r);
