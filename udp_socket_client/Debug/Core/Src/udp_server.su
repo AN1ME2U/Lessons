@@ -1,4 +1,4 @@
-udp_server.c:44:12:udpServerInit	24	static
-udp_server.c:83:24:led_status_handler	40	static
-udp_server.c:110:24:gpio_command_handler	24	static
-udp_server.c:129:6:StartUdpServerTask	184	static
+udp_server.c:33:12:udpServerInit	24	static
+udp_server.c:72:24:led_status_handler	40	static
+udp_server.c:94:24:gpio_command_handler	24	static
+udp_server.c:113:6:StartUdpServerTask	200	static

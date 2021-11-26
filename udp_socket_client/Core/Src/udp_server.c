@@ -10,17 +10,12 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-
 #define PORTNUM 5678UL
 #define PORTNUM2 1234UL
-/*
- * TODO Define one more port number
- * For example:
- * #define PORTNUM2 1234UL
- */
 
 #define CMD_BUFFER_MAX_LEN 32U
-#define GPIO_STATUS_MSG_LEN 29
+#define GPIO_STATUS_MSG_LEN 29U
+#define ERR_MSG_LEN 15U
 
 #if (USE_UDP_SERVER_PRINTF == 1)
 #include <stdio.h>
@@ -34,12 +29,6 @@ static int socket_fd;
 
 static struct sockaddr_in serv_addr, client2_addr;
 static int socket2_fd;
-/*
- * TODO Declare additional variables
- * For example:
- * static struct sockaddr_in client2_addr;
- * static int socket2_fd;
- */
 
 static int udpServerInit(uint16_t portnum)
 {
@@ -59,12 +48,12 @@ static int udpServerInit(uint16_t portnum)
 	serv_addr.sin_port = port;
 
 	if(bind(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr))==-1) {
-		UDP_SERVER_PRINTF("bind() error\n");
+		UDP_SERVER_PRINTF("bind() error\n\r");
 		close(fd);
 		return -1;
 	}
 
-	UDP_SERVER_PRINTF("UDP Server is bound to port %d\n", portnum);
+	UDP_SERVER_PRINTF("UDP Server is bound to port %d\n\r", portnum);
 
 	return fd;
 }
@@ -102,11 +91,6 @@ static command_error_t led_status_handler(const uint8_t * buffer, size_t len, ch
 	return COMMAND_OK;
 }
 
-/*
- * Parameters:
- * buffer - a pointer to the input buffer
- * len - buffer length
- **/
 static command_error_t gpio_command_handler(const uint8_t * buffer, size_t len){
 
 	int pin_state;
@@ -134,12 +118,12 @@ void StartUdpServerTask(void const * argument)
 	osDelay(5000);// wait 5 sec to init lwip stack
 
 	if((socket_fd = udpServerInit(PORTNUM)) < 0) {
-		UDP_SERVER_PRINTF("udpServerInit(PORTNUM) error\n");
+		UDP_SERVER_PRINTF("udpServerInit(PORTNUM) error\n\r");
 		return;
 	}
 
 	if((socket2_fd = udpServerInit(PORTNUM2)) < 0) {
-		UDP_SERVER_PRINTF("udpServerInit(PORTNUM2) error\n");
+		UDP_SERVER_PRINTF("udpServerInit(PORTNUM2) error\n\r");
 		return;
 	}
 
@@ -160,7 +144,6 @@ void StartUdpServerTask(void const * argument)
 		FD_ZERO(&rfds);
 		FD_SET(socket_fd, &rfds);
 		FD_SET(socket2_fd, &rfds);
-		// TODO add the second socket descriptor
 		/* Wait up to five seconds. */
 
 		tv.tv_sec = 5;
@@ -183,54 +166,59 @@ void StartUdpServerTask(void const * argument)
 			const size_t buf_size2 = sizeof(buffer2);
 			command_error_t  r;
 			char gpio_status_feedback[GPIO_STATUS_MSG_LEN];
+			char err_msg[ERR_MSG_LEN];
 			ssize_t received;
 			ssize_t received2;
 
-			if (FD_ISSET(socket_fd, &rfds))
-			{
+			if (FD_ISSET(socket_fd, &rfds)){
+
 				received = recvfrom(socket_fd, buffer, buf_size, MSG_DONTWAIT, (struct sockaddr *)&client_addr, (socklen_t *)&addr_len);
 
-				if (received > 0)
-				{
-					if ( (r = led_status_handler(buffer, received, gpio_status_feedback)) != COMMAND_OK)
-					{
-						UDP_SERVER_PRINTF("command_handler() returned error code = %d\n", (int)r);
-						if (sendto(socket_fd, "error\n", sizeof("error\n"),  MSG_DONTWAIT, (const struct sockaddr *)&client_addr, addr_len) == -1)
-						{
+				if (received > 0){
 
+					if ( (r = led_status_handler(buffer, received, gpio_status_feedback)) != COMMAND_OK){
+
+						UDP_SERVER_PRINTF("led_status_handler() returned error code = %d\n\r", (int)r);
+						sprintf(err_msg, "error code %d\n", r);
+						if (sendto(socket_fd, err_msg, sizeof(err_msg),  MSG_DONTWAIT, (const struct sockaddr *)&client_addr, addr_len) == -1){
+
+							UDP_SERVER_PRINTF("sendto() returned -1 \n\r");
 						}
 					}
 					else
 					{
-						UDP_SERVER_PRINTF("command was handles successfully\n");
-						if (sendto(socket_fd, gpio_status_feedback, sizeof(gpio_status_feedback),  MSG_DONTWAIT, (const struct sockaddr *)&client_addr, addr_len) == -1)
-						{
-							UDP_SERVER_PRINTF("sendto() returned -1 \n");
+						UDP_SERVER_PRINTF("command was handles successfully\n\r");
+						if (sendto(socket_fd, gpio_status_feedback, sizeof(gpio_status_feedback),  MSG_DONTWAIT, (const struct sockaddr *)&client_addr, addr_len) == -1){
+
+							UDP_SERVER_PRINTF("sendto() returned -1 \n\r");
 						}
 					}
 				}
 			}
 			if (FD_ISSET(socket2_fd, &rfds)){
+
 				received2 = recvfrom(socket2_fd, buffer2, buf_size2, MSG_DONTWAIT, (struct sockaddr *)&client2_addr, (socklen_t *)&addr2_len);
 				if (received2 > 0){
-					if ( (r = gpio_command_handler(buffer2, received2)) != COMMAND_OK){
-						UDP_SERVER_PRINTF("command_handler() returned error code = %d\n", (int)r);
-						if (sendto(socket2_fd, "error\n", sizeof("error\n"),  MSG_DONTWAIT, (const struct sockaddr *)&client2_addr, addr2_len) == -1){
-							UDP_SERVER_PRINTF("sendto() returned -1 \n");
-						}
-					}
-					else{
 
-						UDP_SERVER_PRINTF("command was handles successfully\n");
+					if ( (r = gpio_command_handler(buffer2, received2)) != COMMAND_OK){
+
+						UDP_SERVER_PRINTF("gpio_command_handler() returned error code = %d\n\r", (int)r);
+						sprintf(err_msg, "error code %d\n", r);
+						if (sendto(socket2_fd, err_msg, sizeof(err_msg),  MSG_DONTWAIT, (const struct sockaddr *)&client2_addr, addr2_len) == -1){
+
+							UDP_SERVER_PRINTF("sendto() returned -1 \n\r");
+						}
+					}else{
+
+						UDP_SERVER_PRINTF("command was handles successfully\n\r");
 						if (sendto(socket2_fd, "OK\n", sizeof("OK\n"),  MSG_DONTWAIT, (const struct sockaddr *)&client2_addr, addr2_len) == -1){
-							UDP_SERVER_PRINTF("sendto() returned -1 \n");
+							UDP_SERVER_PRINTF("sendto() returned -1 \n\r");
 						}
 					}
 				}
 
 
 			}
-			// TODO Check activity on the second socket descriptor, implement the handler
 		}
 		else
 		{
