@@ -20,6 +20,7 @@
  */
 
 #define CMD_BUFFER_MAX_LEN 32U
+#define GPIO_STATUS_MSG_LEN 29
 
 #if (USE_UDP_SERVER_PRINTF == 1)
 #include <stdio.h>
@@ -79,10 +80,25 @@ typedef enum {
 	COMMAND_OK = 0
 }command_error_t;
 
-static command_error_t led_status_handler(const uint8_t * buffer, size_t len)
+static command_error_t led_status_handler(const uint8_t * buffer, size_t len, char* msg)
 {
-
-
+	int pin_num;
+	char gpio_port;
+	if(sscanf((const char *)buffer, "read gpio %s %d", &gpio_port, &pin_num) != 2){
+		return COMMAND_ERR_WRONG_FORMAT;
+	}
+	if(buffer == 0 || len ==0 || len > CMD_BUFFER_MAX_LEN){
+		return COMMAND_UNKNOWN_ERROR;
+	}
+	if(pin_num < 12 || pin_num > 15){
+		return COMMAND_ERR_GPIO_PIN;
+	}
+	if(gpio_port != 'd'){
+		return COMMAND_ERR_GPIO_NAME;
+	}else {
+		uint8_t pin_status = HAL_GPIO_ReadPin (GPIOD, 1 << pin_num);
+		sprintf(msg, "Status of GPIOD pin %d = %d\n", pin_num, pin_status);
+	}
 	return COMMAND_OK;
 }
 
@@ -95,17 +111,17 @@ static command_error_t gpio_command_handler(const uint8_t * buffer, size_t len){
 
 	int pin_state;
 	int pin_num;
-	sscanf((const char *)buffer, "GPIOD%d=%d", &pin_num, &pin_state);
+	sscanf((const char *)buffer, "GPIOD.%d=%d", &pin_num, &pin_state);
 	if(buffer == 0 || len ==0 || len > CMD_BUFFER_MAX_LEN){
 		return COMMAND_ERR_WRONG_FORMAT;
 	}
 	if(pin_num < 12 || pin_num > 15){
 		return COMMAND_ERR_GPIO_PIN;
 	}
-	if(pin_state != 0 || pin_state != 1){
-		return COMMAND_UNKNOWN_ERROR;
+	if(pin_state == 0 || pin_state == 1){
+		HAL_GPIO_WritePin(GPIOD, 1 << pin_num, pin_state);
 	} else {
-		HAL_GPIO_WritePin(GPIOD, pin_num, pin_state);
+		return COMMAND_UNKNOWN_ERROR;
 	}
 	return COMMAND_OK;
 }
@@ -166,6 +182,7 @@ void StartUdpServerTask(void const * argument)
 			const size_t buf_size = sizeof(buffer);
 			const size_t buf_size2 = sizeof(buffer2);
 			command_error_t  r;
+			char gpio_status_feedback[GPIO_STATUS_MSG_LEN];
 			ssize_t received;
 			ssize_t received2;
 
@@ -175,7 +192,7 @@ void StartUdpServerTask(void const * argument)
 
 				if (received > 0)
 				{
-					if ( (r = led_status_handler(buffer, received)) != COMMAND_OK)
+					if ( (r = led_status_handler(buffer, received, gpio_status_feedback)) != COMMAND_OK)
 					{
 						UDP_SERVER_PRINTF("command_handler() returned error code = %d\n", (int)r);
 						if (sendto(socket_fd, "error\n", sizeof("error\n"),  MSG_DONTWAIT, (const struct sockaddr *)&client_addr, addr_len) == -1)
@@ -186,7 +203,7 @@ void StartUdpServerTask(void const * argument)
 					else
 					{
 						UDP_SERVER_PRINTF("command was handles successfully\n");
-						if (sendto(socket_fd, "OK\n", sizeof("OK\n"),  MSG_DONTWAIT, (const struct sockaddr *)&client_addr, addr_len) == -1)
+						if (sendto(socket_fd, gpio_status_feedback, sizeof(gpio_status_feedback),  MSG_DONTWAIT, (const struct sockaddr *)&client_addr, addr_len) == -1)
 						{
 							UDP_SERVER_PRINTF("sendto() returned -1 \n");
 						}
